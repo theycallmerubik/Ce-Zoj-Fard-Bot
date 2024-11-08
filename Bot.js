@@ -19,24 +19,21 @@ const weekdaysFa = {
 };
 
 // Function to determine if the current week (starting on Saturday) is odd or even
-function getWeekType() {
-    const today = new Date();
-    
-    // Calculate the most recent Saturday
-    const daysSinceSaturday = (today.getDay() + 1) % 7;
-    const saturday = new Date(today.getTime() - daysSinceSaturday * 24 * 60 * 60 * 1000);
-    
-    // Calculate the week number based on this Saturday
-    const firstDayOfYear = new Date(saturday.getFullYear(), 0, 1);
-    const weekNumber = Math.ceil(((saturday - firstDayOfYear) / (7 * 24 * 60 * 60 * 1000)) + 1);
-    
-    // Check if the week number is odd or even
-    if (weekNumber % 2 === 0) {
-        return 'زوج';
-    } else {
-        return 'فرد';
-    }
-  }
+function getWeekType(date) {
+  // Adjust the day to treat Saturday as 0
+  const adjustedDay = (date.getDay() + 6) % 7; // (getDay() + 6) % 7 will make Saturday = 0, Sunday = 1, ..., Friday = 6
+  
+  // Calculate the most recent Saturday
+  const daysSinceSaturday = adjustedDay;
+  const saturday = new Date(date.getTime() - daysSinceSaturday * 24 * 60 * 60 * 1000);
+  
+  // Calculate the week number based on this Saturday
+  const firstDayOfYear = new Date(saturday.getFullYear(), 0, 1);
+  const weekNumber = Math.ceil(((saturday - firstDayOfYear) / (7 * 24 * 60 * 60 * 1000)) + 1);
+  
+  // Return 'زوج' for even weeks, 'فرد' for odd weeks
+  return (weekNumber % 2 === 0) ? 'زوج' : 'فرد';
+}
 
 
 // Create a new bot instance using polling (checks for updates)
@@ -53,7 +50,7 @@ const dayOfWeekFa = weekdaysFa[dayOfWeekEng];
 const weekType = getWeekType();
 
 // Schedule a weekly message for multiple groups
-cron.schedule('* * * * *', () => {
+cron.schedule('30 21 * * 6', () => {
   // Loop through each group ID and send the scheduled message
   groupChatIds.forEach(chatId => {
     // Get tomorrow's date
@@ -84,7 +81,7 @@ cron.schedule('* * * * *', () => {
 
     // Construct the scheduled message text
     const messageText = `🌙 شب بخیر! 
-    
+
 📅 فردا ${dayOfWeekFa}
 🗓 ${persianDateFormatted}
 🖋 هفته ${weekType} آموزشی`;
