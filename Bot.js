@@ -2,7 +2,6 @@
 const TelegramBot = require('node-telegram-bot-api');
 const jalaali = require('jalaali-js');
 const cron = require('node-cron');
-require('dotenv').config();  // Load environment variables from .env file
 
 // Access environment variables directly
 const token = process.env.TELEGRAM_TOKEN;
