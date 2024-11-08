@@ -70,11 +70,23 @@ cron.schedule('* * * * *', () => {
     // Determine if the week is odd or even for tomorrow
     const weekType = getWeekType(tomorrow);
 
+    const persianDateFormatted = `${persianDate.jd}ام ${persianDate.jm === 1 ? 'فروردین' :
+                                  persianDate.jm === 2 ? 'اردیبهشت' :
+                                  persianDate.jm === 3 ? 'خرداد' :
+                                  persianDate.jm === 4 ? 'تیر' :
+                                  persianDate.jm === 5 ? 'مرداد' :
+                                  persianDate.jm === 6 ? 'شهریور' :
+                                  persianDate.jm === 7 ? 'مهر' :
+                                  persianDate.jm === 8 ? 'آبان' :
+                                  persianDate.jm === 9 ? 'آذر' :
+                                  persianDate.jm === 10 ? 'دی' :
+                                  persianDate.jm === 11 ? 'بهمن' : 'اسفند'}`;
+
     // Construct the scheduled message text
     const messageText = `🌙 شب بخیر! 
-معلومات فردا:
-📅 روز هفته: ${dayOfWeekFa}
-🗓 تاریخ شمسی: ${persianDate.jy}/${persianDate.jm}/${persianDate.jd}
+    
+📅 فردا ${dayOfWeekFa}
+🗓 ${persianDateFormatted}
 🖋 هفته ${weekType} آموزشی`;
 
     // Send the message to the group
