@@ -1,7 +1,8 @@
-// Import the Telegram Bot API library
+// Import required modules
 const TelegramBot = require('node-telegram-bot-api');
 const jalaali = require('jalaali-js');
 const cron = require('node-cron');
+require('dotenv').config();  // Load environment variables from .env file
 
 // Access environment variables directly
 const token = process.env.TELEGRAM_TOKEN;
@@ -20,127 +21,101 @@ const weekdaysFa = {
 
 // Function to determine if the current week (starting on Saturday) is odd or even
 function getWeekType(date) {
-  // Adjust the day to treat Saturday as 0
-  const adjustedDay = (date.getDay() + 6) % 7; // (getDay() + 6) % 7 will make Saturday = 0, Sunday = 1, ..., Friday = 6
-  
-  // Calculate the most recent Saturday
-  const daysSinceSaturday = adjustedDay;
-  const saturday = new Date(date.getTime() - daysSinceSaturday * 24 * 60 * 60 * 1000);
-  
-  // Calculate the week number based on this Saturday
-  const firstDayOfYear = new Date(saturday.getFullYear(), 0, 1);
-  const weekNumber = Math.ceil(((saturday - firstDayOfYear) / (7 * 24 * 60 * 60 * 1000)) + 1);
-  
-  // Return 'زوج' for even weeks, 'فرد' for odd weeks
-  return (weekNumber % 2 === 0) ? 'زوج' : 'فرد';
+    const firstSaturdayOfYear = new Date(date.getFullYear(), 0, 1);
+    while (firstSaturdayOfYear.getDay() !== 6) {
+        firstSaturdayOfYear.setDate(firstSaturdayOfYear.getDate() + 1);
+    }
+    const daysSinceFirstSaturday = Math.floor((date - firstSaturdayOfYear) / (24 * 60 * 60 * 1000));
+    const weekNumber = Math.floor(daysSinceFirstSaturday / 7) + 1;
+    return weekNumber % 2 === 0 ? 'فرد' : 'زوج';
 }
 
-
-// Create a new bot instance using polling (checks for updates)
+// Create a new bot instance using polling
 const bot = new TelegramBot(token, { polling: true });
 
-// Get the current date in Gregorian and Persian formats
-const currentDate = new Date();
-const persianDate = jalaali.toJalaali(currentDate);
+// Convert Gregorian date to Persian date
+function formatPersianDate(date) {
+    const persianDate = jalaali.toJalaali(date);
+    return `${persianDate.jd}ام ${getPersianMonthName(persianDate.jm)} ماه ${persianDate.jy} شمسی`;
+}
 
-// Get day of the week in English and convert to Persian
-const dayOfWeekEng = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
-const dayOfWeekFa = weekdaysFa[dayOfWeekEng];
+// Convert month number to Persian month name
+function getPersianMonthName(month) {
+    const months = [
+        'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+        'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+    ];
+    return months[month - 1];
+}
 
-const weekType = getWeekType();
+// Convert English Gregorian months to Persian
+const gregorianMonthsFa = {
+    'January': 'ژانویه', 'February': 'فوریه', 'March': 'مارس', 'April': 'آوریل',
+    'May': 'می', 'June': 'ژوئن', 'July': 'ژوئیه', 'August': 'اوت',
+    'September': 'سپتامبر', 'October': 'اکتبر', 'November': 'نوامبر', 'December': 'دسامبر'
+};
 
 // Schedule a weekly message for multiple groups
-cron.schedule('30 21 * * 6', () => {
-  // Loop through each group ID and send the scheduled message
-  groupChatIds.forEach(chatId => {
-    // Get tomorrow's date
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
+cron.schedule('* * * * *', () => {
+    groupChatIds.forEach(chatId => {
+        // Get tomorrow's date and convert it to Jalali
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const persianDate = jalaali.toJalaali(tomorrow);
 
-    // Convert the date to Jalali
-    const persianDate = jalaali.toJalaali(tomorrow);
+        // Get the English weekday for tomorrow and convert it to Persian
+        const dayOfWeekEng = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
+        const dayOfWeekFa = weekdaysFa[dayOfWeekEng];
 
-    // Get the English weekday for tomorrow and convert it to Persian
-    const dayOfWeekEng = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
-    const dayOfWeekFa = weekdaysFa[dayOfWeekEng];
+        // Determine if the week is odd or even for tomorrow
+        const weekType = getWeekType(tomorrow);
 
-    // Determine if the week is odd or even for tomorrow
-    const weekType = getWeekType(tomorrow);
+        // Format the Persian date
+        const persianDateFormatted = `${persianDate.jd}ام ${getPersianMonthName(persianDate.jm)}`;
 
-    const persianDateFormatted = `${persianDate.jd}ام ${persianDate.jm === 1 ? 'فروردین' :
-                                  persianDate.jm === 2 ? 'اردیبهشت' :
-                                  persianDate.jm === 3 ? 'خرداد' :
-                                  persianDate.jm === 4 ? 'تیر' :
-                                  persianDate.jm === 5 ? 'مرداد' :
-                                  persianDate.jm === 6 ? 'شهریور' :
-                                  persianDate.jm === 7 ? 'مهر' :
-                                  persianDate.jm === 8 ? 'آبان' :
-                                  persianDate.jm === 9 ? 'آذر' :
-                                  persianDate.jm === 10 ? 'دی' :
-                                  persianDate.jm === 11 ? 'بهمن' : 'اسفند'}`;
-
-    // Construct the scheduled message text
-    const messageText = `🌙 شب بخیر! 
+        // Construct the scheduled message text
+        const messageText = `🌙 شب بخیر! 
 
 📅 فردا ${dayOfWeekFa}
 🗓 ${persianDateFormatted}
-🖋 هفته ${weekType} آموزشی`;
+🖋 شروع هفته ${weekType} آموزشی`;
 
-    // Send the message to the group
-    bot.sendMessage(chatId, messageText);
-  });
+        // Send the message to the group
+        bot.sendMessage(chatId, messageText);
+    });
 }, {
-  timezone: "Asia/Tehran" // Set timezone as needed
+    timezone: "Asia/Tehran" // Set timezone as needed
 });
 
 // Start command handler
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
-  
-    // Get the current date in Gregorian and Persian formats
     const currentDate = new Date();
-    const persianDate = jalaali.toJalaali(currentDate);
-  
-    // Get day of the week in English and convert to Persian
-    const dayOfWeekEng = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
-    const dayOfWeekFa = weekdaysFa[dayOfWeekEng];
-  
-    // Determine if the week is odd or even
-    const weekType = getWeekType();
-  
-    // Construct the message text
-    const messageText = `📅تاریخ میلادی: ${currentDate.toISOString().split('T')[0]}\n
-🗓تاریخ شمسی: ${persianDate.jy}/${persianDate.jm}/${persianDate.jd}\n
-📌روز هفته: ${dayOfWeekFa}\n
-🖋هفته ${weekType} آموزشی
-`;
+    
+    // Get Persian and Gregorian dates
+    const persianDateText = formatPersianDate(currentDate);
+    const gregorianMonthFa = gregorianMonthsFa[currentDate.toLocaleString('en-US', { month: 'long' })];
+    const gregorianDateText = `${currentDate.getDate()}ام ${gregorianMonthFa} سال ${currentDate.getFullYear()} میلادی`;
 
-  // Define the inline keyboard based on the chat type
-  const inlineKeyboard = {
-    reply_markup: {
-      inline_keyboard: []
-    }
-  };
+    // Get the Persian weekday and week type
+    const dayOfWeekFa = weekdaysFa[currentDate.toLocaleDateString('en-US', { weekday: 'long' })];
+    const weekType = getWeekType(currentDate);
 
-  // Check if the bot was started in a private chat or a group
-  if (msg.chat.type === 'private') {
-    // Add the web app button for private chat
-    inlineKeyboard.reply_markup.inline_keyboard.push([
-      {
-        text: '🌐', // Button text
-        web_app: { url: 'https://theycallmerubik.github.io' } //your mini app URL
-      }
-    ]);
-  } else {
-    // Add a normal webpage button for groups
-    inlineKeyboard.reply_markup.inline_keyboard.push([
-      {
-        text: '🌐', // Button text
-        url: 'https://theycallmerubik.github.io' //your webpage URL
-      }
-    ]);
-  }
-  
-    // Send the message to the user
+    // Construct the start command message
+    const messageText = `📅 ${gregorianDateText}\n
+🗓 ${persianDateText}\n
+📌 روز هفته: ${dayOfWeekFa}\n
+🖋 هفته ${weekType} آموزشی`;
+
+    const inlineKeyboard = {
+        reply_markup: {
+            inline_keyboard: msg.chat.type === 'private' ? [
+                [{ text: '🌐', web_app: { url: 'https://theycallmerubik.github.io' } }]
+            ] : [
+                [{ text: '🌐', url: 'https://theycallmerubik.github.io' }]
+            ]
+        }
+    };
+
     bot.sendMessage(chatId, messageText, inlineKeyboard);
-  });
+});
