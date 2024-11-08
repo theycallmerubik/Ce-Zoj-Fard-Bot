@@ -1,6 +1,11 @@
 // Import the Telegram Bot API library
 const TelegramBot = require('node-telegram-bot-api');
 const jalaali = require('jalaali-js');
+const cron = require('node-cron');
+
+// Access environment variables directly
+const token = process.env.TELEGRAM_TOKEN;
+const groupChatIds = process.env.GROUP_CHAT_IDS.split(',');
 
 // Dictionary to convert English weekdays to Persian
 const weekdaysFa = {
@@ -33,8 +38,6 @@ function getWeekType() {
     }
   }
 
-// Replace with your bot token from @BotFather
-const token = '7096302611:AAGdtfWVWzJDyptv-ybKYAPa1AIzVAJ06vQ';
 
 // Create a new bot instance using polling (checks for updates)
 const bot = new TelegramBot(token, { polling: true });
@@ -49,6 +52,37 @@ const dayOfWeekFa = weekdaysFa[dayOfWeekEng];
 
 const weekType = getWeekType();
 
+// Schedule a weekly message for multiple groups
+cron.schedule('* * * * *', () => {
+  // Loop through each group ID and send the scheduled message
+  groupChatIds.forEach(chatId => {
+    // Get tomorrow's date
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Convert the date to Jalali
+    const persianDate = jalaali.toJalaali(tomorrow);
+
+    // Get the English weekday for tomorrow and convert it to Persian
+    const dayOfWeekEng = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
+    const dayOfWeekFa = weekdaysFa[dayOfWeekEng];
+
+    // Determine if the week is odd or even for tomorrow
+    const weekType = getWeekType(tomorrow);
+
+    // Construct the scheduled message text
+    const messageText = `🌙 شب بخیر! 
+معلومات فردا:
+📅 روز هفته: ${dayOfWeekFa}
+🗓 تاریخ شمسی: ${persianDate.jy}/${persianDate.jm}/${persianDate.jd}
+🖋 هفته ${weekType} آموزشی`;
+
+    // Send the message to the group
+    bot.sendMessage(chatId, messageText);
+  });
+}, {
+  timezone: "Asia/Tehran" // Set timezone as needed
+});
 
 // Start command handler
 bot.onText(/\/start/, (msg) => {
