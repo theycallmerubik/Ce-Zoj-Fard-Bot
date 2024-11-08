@@ -55,7 +55,7 @@ const gregorianMonthsFa = {
 };
 
 // Schedule a weekly message for multiple groups
-cron.schedule('30 21 * * 5', () => {
+cron.schedule('7 23 * * 5', () => {
     groupChatIds.forEach(chatId => {
         // Get tomorrow's date and convert it to Jalali
         const tomorrow = new Date();
