@@ -73,7 +73,7 @@ cron.schedule('30 21 * * 5', () => {
         const persianDateFormatted = `${persianDate.jd}ام ${getPersianMonthName(persianDate.jm)}`;
 
         // Construct the scheduled message text
-        const messageText = `یلدا مبارک! 🍉
+        const messageText = `شب آدینه شما بخیر 🌙
 
 📅 فردا ${dayOfWeekFa}
 🗓 ${persianDateFormatted}
