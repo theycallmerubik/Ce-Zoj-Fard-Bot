@@ -120,5 +120,5 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 For questions or suggestions, contact:
 
-- Telegram: [@Ru\_bic](t.me/Ru_Bic)
+- Telegram: [@Ru\_bic](https://t.me/Ru_Bic)
 - Email: [rubikmanyt@Gmail.com](mailto\:rubikmanyt@Gmail.com)
