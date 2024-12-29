@@ -34,10 +34,13 @@ This script is a Telegram bot designed to inform the users about the current wee
 - `jalaali-js`, `node-telegram-bot-api`, and `node-cron` npm packages.
 
 ### Steps
-1. Clone the repository or copy the script.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/theycallmerubik/Ce-Zoj-Fard-Bot.git
+   ```
 2. Install required packages:
    ```bash
-   npm install node-telegram-bot-api jalaali-js node-cron
+   npm install
    ```
 3. Create a `.env` file in the root directory with the following variables:
    ```env
