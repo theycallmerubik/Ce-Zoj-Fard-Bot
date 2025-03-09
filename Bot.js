@@ -109,9 +109,9 @@ bot.onText(/\/start/, (msg) => {
     const inlineKeyboard = {
         reply_markup: {
             inline_keyboard: msg.chat.type === 'private' ? [
-                [{ text: '🌐', web_app: { url: 'https://theycallmerubik.github.io' } }]
+                [{ text: '🌐', web_app: { url: 'https://theycallmerubik.github.io/zojfard' } }]
             ] : [
-                [{ text: '🌐', url: 'https://theycallmerubik.github.io' }]
+                [{ text: '🌐', url: 'https://theycallmerubik.github.io/zojfard' }]
             ]
         }
     };
