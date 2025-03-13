@@ -77,7 +77,9 @@ cron.schedule('30 21 * * 5', () => {
 
 📅 فردا ${dayOfWeekFa}
 🗓 ${persianDateFormatted}
-🖋 شروع هفته ${weekType} آموزشی`;
+🖋 شروع هفته ${weekType} آموزشی
+
+سال نو بر شما مبارک 🎉`;
 
         // Send the message to the group
         bot.sendMessage(chatId, messageText);
