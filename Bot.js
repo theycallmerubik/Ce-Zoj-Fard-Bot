@@ -26,7 +26,7 @@ function getWeekType(date) {
     }
     const daysSinceFirstSaturday = Math.floor((date - firstSaturdayOfYear) / (24 * 60 * 60 * 1000));
     const weekNumber = Math.floor(daysSinceFirstSaturday / 7) + 1;
-    return weekNumber % 2 === 0 ? 'فرد' : 'زوج';
+    return weekNumber % 2 === 0 ? 'زوج' : 'فرد';
 }
 
 // Create a new bot instance using polling
