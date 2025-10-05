@@ -11,6 +11,7 @@ const ADMIN_USER_ID = process.env.ADMIN_USER_ID;
 const PORT = process.env.PORT || 3000;
 const webhookurl = process.env.WEBHOOK_URL;
 
+const app = express();
 const bot = new TelegramBot(TOKEN);
 
 bot.setWebHook(`${webhookurl}/bot${TOKEN}`);
