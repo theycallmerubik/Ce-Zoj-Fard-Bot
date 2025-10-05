@@ -196,7 +196,7 @@ bot.onText(/\/togglebot/, (msg) => {
 bot.onText(/\/setting/, (msg) => {
     if (msg.from.id.toString() !== ADMIN_USER_ID) return;
 
-    return bot.sendMessage(msg.chat.id, `تنظیمات فعلی:\n\nوضعیت ربات:${botstatus ? '✅ روشن' : '📵 خاموش'}\n🔀 وضعیت زوج/فرد هفته: ${isWeekTypeReversed ? 'معکوس 🔁' : 'عادی'}\n💬 پیام سفارشی: ${custommessage || 'ثبت نشده'}`);
+    return bot.sendMessage(msg.chat.id, `🔧تنظیمات فعلی:\n\n🔷وضعیت ربات: ${botstatus ? 'روشن 🆙' : 'خاموش 📵'}\n🔀 وضعیت زوج/فرد هفته: ${isWeekTypeReversed ? 'معکوس 🔁' : 'عادی'}\n💬 پیام سفارشی: ${custommessage || 'ثبت نشده'}`);
 });
 
 bot.onText(/\/commands/, (msg) => {
