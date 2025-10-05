@@ -188,6 +188,7 @@ bot.onText(/\/togglebot/, (msg) => {
     if (msg.from.id.toString() !== ADMIN_USER_ID) return;
     
     botstatus = !botstatus;
+    if (botstatus) {custommessage = '';} // Clear custom message when turning bot on
     return bot.sendMessage(msg.chat.id, `وضعیت ربات تغییر کرد. حالت فعلی: ${botstatus ? '✅ روشن' : '📵 خاموش'}`);
 });
 
