@@ -128,6 +128,12 @@ bot.onText(/\/custommessage (.+)/, (msg, match) => {
     bot.sendMessage(msg.chat.id, `پیام سفارشی با موفقیت ثبت شد:\n${custommessage}`);
 });
 
+bot.onText(/\/setting/, (msg) => {
+    if (msg.from.id.toString() !== ADMIN_USER_ID) return;
+
+    bot.sendMessage(msg.chat.id, `تنظیمات فعلی:\n\n- وضعیت زوج/فرد هفته: ${isWeekTypeReversed ? 'معکوس' : 'عادی'}\n- پیام سفارشی: ${custommessage || 'ثبت نشده'}`);
+});
+
 // Schedule a weekly message for multiple groups
 cron.schedule('30 21 * * 5', () => {
     groupChatIds.forEach(chatId => {
@@ -151,6 +157,7 @@ cron.schedule('30 21 * * 5', () => {
 
         // Send the message to the group
         bot.sendMessage(chatId, messageText);
+        custommessage = ''; // Clear custom message after sending
     });
 }, {
     timezone: "Asia/Tehran" // Set timezone as needed
