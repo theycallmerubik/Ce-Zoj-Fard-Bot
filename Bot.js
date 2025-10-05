@@ -46,6 +46,7 @@ const gregorianMonthsFa = {
 };
 
 let isWeekTypeReversed = false;
+let botstatus = true;
 let custommessage = '';
 
 // Function to determine if the current week (starting on Saturday) is odd or even
@@ -76,6 +77,47 @@ function getPersianMonthName(month) {
     return months[month - 1];
 }
 
+class AntiSpam {
+  constructor() {
+    this.userActivities = new Map(); // { userId: { count, lastActivity } }
+    this.limits = {
+      messages: 5,    // حداکثر 5 پیام در بازه زمانی
+      interval: 10000 // بازه زمانی 10 ثانیه
+    };
+  }
+
+  checkSpam(userId) {
+    const now = Date.now();
+    const user = this.userActivities.get(userId) || { count: 0, lastActivity: 0 };
+
+    // اگر زمان از آخرین فعالیت گذشته باشد، ریست کن
+    if (now - user.lastActivity > this.limits.interval) {
+      user.count = 0;
+      user.lastActivity = now;
+    }
+
+    user.count++;
+    this.userActivities.set(userId, user);
+
+    // اگر تعداد پیام‌ها از حد مجاز بیشتر شد
+    if (user.count > this.limits.messages) {
+      const remainingTime = Math.ceil((this.limits.interval - (now - user.lastActivity)) / 1000);
+      return {
+        isSpam: true,
+        message: `❗️ لطفاً کمی صبر کنید! (${remainingTime} ثانیه)`
+      };
+    }
+
+    return { isSpam: false };
+  }
+
+  resetUser(userId) {
+    this.userActivities.delete(userId);
+  }
+}
+
+const antiSpam = new AntiSpam();
+
 // Start command handler
 bot.onText(/\/start(@\w+)?/, (msg, match) => {
 
@@ -86,9 +128,22 @@ bot.onText(/\/start(@\w+)?/, (msg, match) => {
     }
 
     const chatId = msg.chat.id;
-    const currentDate = new Date();
+    const userId = msg.from.id;
+
+    // Anti-spam check
+    const spamCheck = antiSpam.checkSpam(userId);
+    if (spamCheck.isSpam) {
+        return bot.sendMessage(chatId, spamCheck.message, {
+            reply_to_message_id: msg.message_id
+        });
+    }
+    
+    if (!botstatus) {
+        return bot.sendMessage(chatId, `🤖 ربات در حال حاضر خاموش است. لطفاً بعداً دوباره امتحان کنید.\n\n${custommessage}`);
+    }
     
     // Get Persian and Gregorian dates
+    const currentDate = new Date();
     const persianDateText = formatPersianDate(currentDate);
     const gregorianMonthFa = gregorianMonthsFa[currentDate.toLocaleString('en-US', { month: 'long' })];
     const gregorianDateText = `${currentDate.getDate()}ام ${gregorianMonthFa} سال ${currentDate.getFullYear()} میلادی`;
@@ -110,7 +165,7 @@ bot.onText(/\/start(@\w+)?/, (msg, match) => {
         }
     };
     
-    bot.sendMessage(chatId, messageText, inlineKeyboard);
+    return bot.sendMessage(chatId, messageText, inlineKeyboard);
 });
 
 // Command to toggle week type
@@ -118,24 +173,40 @@ bot.onText(/\/toggleweektype/, (msg) => {
     if (msg.from.id.toString() !== ADMIN_USER_ID) return;
     
     isWeekTypeReversed = !isWeekTypeReversed;
-    bot.sendMessage(msg.chat.id, `وضعیت زوج/فرد هفته تغییر کرد. حالت فعلی: ${isWeekTypeReversed ? 'معکوس' : 'عادی'}`);
+    return bot.sendMessage(msg.chat.id, `وضعیت زوج/فرد هفته تغییر کرد. حالت فعلی: ${isWeekTypeReversed ? 'معکوس' : 'عادی'}`);
 });
 
 // Command to set a custom message
 bot.onText(/\/custommessage (.+)/, (msg, match) => {
     if (msg.from.id.toString() !== ADMIN_USER_ID) return;
     custommessage = match[1];
-    bot.sendMessage(msg.chat.id, `پیام سفارشی با موفقیت ثبت شد:\n${custommessage}`);
+    return bot.sendMessage(msg.chat.id, `پیام سفارشی با موفقیت ثبت شد:\n${custommessage}`);
 });
 
+// Command to toggle bot status
+bot.onText(/\/togglebot/, (msg) => {
+    if (msg.from.id.toString() !== ADMIN_USER_ID) return;
+    
+    botstatus = !botstatus;
+    return bot.sendMessage(msg.chat.id, `وضعیت ربات تغییر کرد. حالت فعلی: ${botstatus ? '✅ روشن' : '📵 خاموش'}`);
+});
+
+// Command to view current settings
 bot.onText(/\/setting/, (msg) => {
     if (msg.from.id.toString() !== ADMIN_USER_ID) return;
 
-    bot.sendMessage(msg.chat.id, `تنظیمات فعلی:\n\n- وضعیت زوج/فرد هفته: ${isWeekTypeReversed ? 'معکوس' : 'عادی'}\n- پیام سفارشی: ${custommessage || 'ثبت نشده'}`);
+    return bot.sendMessage(msg.chat.id, `تنظیمات فعلی:\n\nوضعیت ربات:${botstatus ? '✅ روشن' : '📵 خاموش'}\n🔀 وضعیت زوج/فرد هفته: ${isWeekTypeReversed ? 'معکوس 🔁' : 'عادی'}\n💬 پیام سفارشی: ${custommessage || 'ثبت نشده'}`);
+});
+
+bot.onText(/\/commands/, (msg) => {
+    if (msg.from.id.toString() !== ADMIN_USER_ID) return;
+
+    return bot.sendMessage(msg.chat.id, `دستورات موجود:\n\n/start - شروع و دریافت تاریخ امروز\n/toggleweektype - تغییر وضعیت زوج/فرد هفته\n/custommessage <پیام> - تنظیم پیام سفارشی برای ارسال هفتگی\n/togglebot - روشن یا خاموش کردن ربات\n/setting - مشاهده تنظیمات فعلی ربات\n/commands - مشاهده دستورات موجود`);
 });
 
 // Schedule a weekly message for multiple groups
 cron.schedule('30 21 * * 5', () => {
+    if (!botstatus) return; // If bot is off, do nothing
     groupChatIds.forEach(chatId => {
         // Get tomorrow's date and convert it to Jalali
         const tomorrow = new Date();
@@ -153,11 +224,12 @@ cron.schedule('30 21 * * 5', () => {
         const persianDateFormatted = `${persianDate.jd}ام ${getPersianMonthName(persianDate.jm)}`;
 
         // Construct the scheduled message text
-        const messageText = `شب آدینه شما بخیر 🌙\n\n📅 فردا ${dayOfWeekFa}\n🗓 ${persianDateFormatted}\n🖋 شروع هفته ${weekType} آموزشی\n${custommessage}`;
+        const messageText = `شب آدینه شما بخیر 🌙\n\n📅 فردا ${dayOfWeekFa}\n🗓 ${persianDateFormatted}\n🖋 شروع هفته ${weekType} آموزشی\n\n${custommessage}`;
 
         // Send the message to the group
         bot.sendMessage(chatId, messageText);
         custommessage = ''; // Clear custom message after sending
+        return;
     });
 }, {
     timezone: "Asia/Tehran" // Set timezone as needed
