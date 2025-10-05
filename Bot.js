@@ -113,11 +113,19 @@ bot.onText(/\/start(@\w+)?/, (msg, match) => {
     bot.sendMessage(chatId, messageText, inlineKeyboard);
 });
 
+// Command to toggle week type
 bot.onText(/\/toggleweektype/, (msg) => {
     if (msg.from.id.toString() !== ADMIN_USER_ID) return;
     
     isWeekTypeReversed = !isWeekTypeReversed;
     bot.sendMessage(msg.chat.id, `وضعیت زوج/فرد هفته تغییر کرد. حالت فعلی: ${isWeekTypeReversed ? 'معکوس' : 'عادی'}`);
+});
+
+// Command to set a custom message
+bot.onText(/\/custommessage (.+)/, (msg, match) => {
+    if (msg.from.id.toString() !== ADMIN_USER_ID) return;
+    custommessage = match[1];
+    bot.sendMessage(msg.chat.id, `پیام سفارشی با موفقیت ثبت شد:\n${custommessage}`);
 });
 
 // Schedule a weekly message for multiple groups
