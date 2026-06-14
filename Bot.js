@@ -58,7 +58,7 @@ async function getWeekType(date) {
     const weekNumber = Math.floor(daysSinceFirstSaturday / 7) + 1;
     const isEven = weekNumber % 2 === 0;
     const isReversed = (await db.getSetting('isWeekTypeReversed', 'false')) === 'true';
-    return (isReversed ? !isEven : isEven) ? 'زوج' : 'فرد';
+    return (isReversed ? !isEven : isEven) ? 'فرد' : 'زوج';
 }
 
 // Convert Gregorian date to Persian date
