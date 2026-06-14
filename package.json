@@ -14,7 +14,7 @@
     "jalaali-js": "*",
     "node-cron": "*",
     "express": "*",
-    "node-telegram-bot-api": "*",
+    "node-telegram-bot-api": "^0.66.0",
     "pg": "^8.10.0"
   }
 }
