@@ -1,14 +1,23 @@
 const { Pool } = require('pg');
 
-const connectionString = {
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-};
+// Support either a DATABASE_URL string or individual DB_/PG_ env vars
+function createPool() {
+  if (process.env.DATABASE_URL && typeof process.env.DATABASE_URL === 'string') {
+    return new Pool({ connectionString: process.env.DATABASE_URL });
+  }
 
-const pool = new Pool({ connectionString });
+  const config = {
+    user: process.env.DB_USER || process.env.PGUSER,
+    host: process.env.DB_HOST || process.env.PGHOST,
+    database: process.env.DB_NAME || process.env.PGDATABASE,
+    password: process.env.DB_PASSWORD || process.env.PGPASSWORD,
+    port: process.env.DB_PORT || process.env.PGPORT ? parseInt(process.env.DB_PORT || process.env.PGPORT) : undefined,
+  };
+
+  return new Pool(config);
+}
+
+const pool = createPool();
 
 
 async function init() {
